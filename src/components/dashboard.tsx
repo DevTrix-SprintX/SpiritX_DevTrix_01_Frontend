@@ -10,6 +10,11 @@ interface UserData {
   [key: string]: unknown; 
 }
 
+interface ApiResponse {
+  status: number;
+  user: UserData;
+}
+
 const Dashboard: React.FC = () => {
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -40,8 +45,14 @@ const Dashboard: React.FC = () => {
           throw new Error('Failed to fetch user profile');
         }
         
-        const data = await response.json();
-        setUser(data.user);
+        const data = await response.json() as ApiResponse;
+        console.log('User data received:', data); // Add this for debugging
+        
+        if (data.user) {
+          setUser(data.user);
+        } else {
+          throw new Error('User data not found in response');
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unknown error occurred');
         console.error('Error fetching user profile:', err);
@@ -128,6 +139,7 @@ const Dashboard: React.FC = () => {
               <div className="space-y-2">
                 <p><span className="font-medium">Username:</span> {user?.username}</p>
                 <p><span className="font-medium">Full Name:</span> {user?.firstName} {user?.lastName}</p>
+                <p><span className="font-medium">User ID:</span> {user?.id}</p>
               </div>
             </div>
             <div className="bg-blue-50 p-4 rounded-md text-blue-800">

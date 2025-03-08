@@ -34,7 +34,7 @@ export function LoginForm({
       });
       
       // Store token in localStorage for auth purposes
-      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('authToken', response.data.token);
       
       const Swal = (await import('sweetalert2')).default
       
