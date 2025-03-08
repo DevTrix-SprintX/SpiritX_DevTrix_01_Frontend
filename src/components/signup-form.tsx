@@ -17,6 +17,7 @@ import { Checkbox } from "../components/ui/checkbox";
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Progress } from '../components/ui/progress';
 import { Eye, EyeOff } from 'lucide-react'; 
+import apiService from '@/services/AxiosInstence';
 
 // Define types for the form data and errors
 interface FormData {
@@ -230,7 +231,7 @@ export function SignupForm({ className, ...props }: SignupFormProps) {
     if (isValid) {
       try {
         // Make API call to register user using Axios
-        await axios.post('http://localhost:3000/auth/register', {
+          apiService.post('/auth/register', {
             username: formData.username,
             password: formData.password,
             firstName: formData.firstName,

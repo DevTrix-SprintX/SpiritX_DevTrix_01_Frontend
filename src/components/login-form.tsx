@@ -11,6 +11,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
 import axios from "axios"
+import apiService from "@/services/AxiosInstence"
+import { jwtDecode } from "jwt-decode"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function LoginForm({
   className,
@@ -28,13 +31,20 @@ export function LoginForm({
     
     try {
       // Making actual API call to backend
-      const response = await axios.post('http://localhost:3000/auth/login', {
-        username,
-        password
-      });
+      const response = await apiService.post('/auth/login', { username, password }) as { status:number, msg:string , token: string , user: { firstName: string, lastName: string } };
+      console.log('Login response:', response);
       
-      // Store token in localStorage for auth purposes
-      localStorage.setItem('token', response.data.token);
+      if(!response.token) {
+        throw new Error('No token found in response'); 
+      }
+      const userData = { username, token: response.token, firstName: response.user.firstName , lastName: response.user.lastName };
+      console.log('Logged User data:', userData);
+      
+      const decodeData = jwtDecode(response.token);
+      console.log('Decoded token data:', decodeData);
+      
+      localStorage.setItem("user", JSON.stringify(userData));
+
       
       const Swal = (await import('sweetalert2')).default
       

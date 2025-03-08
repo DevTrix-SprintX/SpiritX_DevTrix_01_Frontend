@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LogOut, User } from 'lucide-react';
+import apiService from '@/services/AxiosInstence';
 
 // Define interfaces for type safety
 interface UserData {
@@ -21,20 +22,15 @@ const Dashboard: React.FC = () => {
         setLoading(true);
         
         // Get token from localStorage
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('token');
         
         if (!token) {
           throw new Error('No authentication token found');
         }
         
         // Fetch user profile using the token
-        const response = await fetch('http://localhost:3000/auth/profile', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
+        const response = await apiService.get<UserData>('/user');
+        console.log('User profile response:', response);
         
         if (!response.ok) {
           throw new Error('Failed to fetch user profile');
