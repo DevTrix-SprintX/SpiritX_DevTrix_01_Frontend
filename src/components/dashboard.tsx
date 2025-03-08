@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { LogOut, User } from 'lucide-react';
 import apiService from '@/services/AxiosInstence';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 // Define interfaces for type safety
 interface UserData {
@@ -17,6 +19,9 @@ const Dashboard: React.FC = () => {
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const auth = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserProfile = async (): Promise<void> => {
@@ -52,10 +57,8 @@ const Dashboard: React.FC = () => {
   }, []);
   
   const handleLogout = (): void => {
-    // Clear token from localStorage
-    localStorage.removeItem('authToken');
-    // Redirect to login page
-    window.location.href = '/login';
+    auth.logout();
+    navigate('/login');
   };
 
   if (loading) {

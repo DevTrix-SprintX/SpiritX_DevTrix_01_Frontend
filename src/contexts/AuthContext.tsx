@@ -54,7 +54,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = (userData: User) => {
     localStorage.setItem("user", JSON.stringify(userData));
     
-    
     setIsAuthenticated(true);
     setUser(userData);
   };
@@ -62,7 +61,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     // Clear auth data from localStorage
     localStorage.removeItem("user");
-    localStorage.removeItem("token");
     
     setIsAuthenticated(false);
     setUser(null);

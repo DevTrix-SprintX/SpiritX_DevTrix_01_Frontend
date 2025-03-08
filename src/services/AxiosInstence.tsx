@@ -25,12 +25,20 @@ class ApiService {
     // Request interceptor
     this.axiosInstance.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('token');
+        const userStr = localStorage.getItem('user');
+        let user = null;
+        try{
+           user = JSON.parse(userStr as string);
+        }
+        catch(e){
+          console.error('Error parsing user data:', e);
+        }
         
         // Attach token to headers if exists
-        if (token) {
+        console.log('attaching token', user.token);
+        if (user.token) {
           config.headers = config.headers || {};
-          config.headers['Authorization'] = `Bearer ${token}`;
+          config.headers['Authorization'] = `Bearer ${user.token}`;
         }
         
         return config;
@@ -60,7 +68,7 @@ class ApiService {
           // Handle 403 Forbidden
           if (status === 403) {
             console.error('Permission denied');
-            navigate('/403');
+            window.location.href = '/403';
           }
           
           // Handle 500 and other server errors
