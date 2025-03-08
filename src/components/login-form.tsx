@@ -10,24 +10,32 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
+import axios from "axios"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [email, setEmail] = useState("")
+  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError("")
     
     try {
-      // Simulating API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Making actual API call to backend
+      const response = await axios.post('http://localhost:3000/auth/login', {
+        username,
+        password
+      });
       
-     
+      // Store token in localStorage for auth purposes
+      localStorage.setItem('token', response.data.token);
+      
       const Swal = (await import('sweetalert2')).default
       
       Swal.fire({
@@ -46,17 +54,25 @@ export function LoginForm({
       })
       
       // Reset form
-      setEmail("")
+      setUsername("")
       setPassword("")
     } catch (error) {
       console.error('Login error:', error)
+      
+      let errorMessage = 'Failed to log in. Please check your credentials.';
+      
+      if (axios.isAxiosError(error) && error.response) {
+        // Extract error message from the response
+        errorMessage = error.response.data.message || errorMessage;
+        setError(errorMessage);
+      }
       
       // Import SweetAlert dynamically for error
       const Swal = (await import('sweetalert2')).default
       
       Swal.fire({
         title: 'Error!',
-        text: 'Failed to log in. Please check your credentials.',
+        text: errorMessage,
         icon: 'error',
         confirmButtonText: 'Try Again',
         confirmButtonColor: '#ef4444'
@@ -72,21 +88,21 @@ export function LoginForm({
         <CardHeader>
           <CardTitle>Login to your account</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Enter your username below to login to your account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-3">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
+                  id="username"
+                  type="text"
+                  placeholder="johndoe123"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                 />
               </div>
               <div className="grid gap-3">
@@ -107,6 +123,11 @@ export function LoginForm({
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
+              {error && (
+                <div className="text-sm text-red-500">
+                  {error}
+                </div>
+              )}
               <div className="flex flex-col gap-3">
                 <Button 
                   type="submit" 

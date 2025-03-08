@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import axios from 'axios';
 import { cn } from "../lib/utils";
 import { Button } from "../components/ui/button";
 import {
@@ -22,6 +23,8 @@ interface FormData {
   username: string;
   password: string;
   confirmPassword: string;
+  firstName: string;
+  lastName: string;
   agreeToTerms: boolean;
 }
 
@@ -29,6 +32,8 @@ interface FormErrors {
   username: string;
   password: string;
   confirmPassword: string;
+  firstName: string;
+  lastName: string;
   terms: string;
   auth: string;
 }
@@ -37,6 +42,8 @@ interface TouchedFields {
   username: boolean;
   password: boolean;
   confirmPassword: boolean;
+  firstName: boolean;
+  lastName: boolean;
 }
 
 type SignupFormProps = React.HTMLAttributes<HTMLDivElement>
@@ -49,6 +56,8 @@ export function SignupForm({ className, ...props }: SignupFormProps) {
     username: '',
     password: '',
     confirmPassword: '',
+    firstName: '',
+    lastName: '',
     agreeToTerms: false
   });
   
@@ -57,6 +66,8 @@ export function SignupForm({ className, ...props }: SignupFormProps) {
     username: '',
     password: '',
     confirmPassword: '',
+    firstName: '',
+    lastName: '',
     terms: '',
     auth: ''
   });
@@ -64,7 +75,9 @@ export function SignupForm({ className, ...props }: SignupFormProps) {
   const [touched, setTouched] = useState<TouchedFields>({
     username: false,
     password: false,
-    confirmPassword: false
+    confirmPassword: false,
+    firstName: false,
+    lastName: false
   });
   
   // Password visibility states
@@ -90,35 +103,50 @@ export function SignupForm({ className, ...props }: SignupFormProps) {
     }
   };
 
-  // Validate username
+  // Validate username - updated to require at least 8 characters
   const validateUsername = (username: string): string => {
     if (!username) return 'Username is required';
     if (username.length < 8) return 'Username must be at least 8 characters long';
     return '';
   };
 
-  // Calculate password strength and validate
+  // Validate first name
+  const validateFirstName = (firstName: string): string => {
+    if (!firstName) return 'First name is required';
+    if (firstName.length < 3) return 'First name must be at least 3 characters long';
+    return '';
+  };
+
+  // Validate last name
+  const validateLastName = (lastName: string): string => {
+    if (!lastName) return 'Last name is required';
+    if (lastName.length < 3) return 'Last name must be at least 3 characters long';
+    return '';
+  };
+
+  // Calculate password strength and validate - updated to match backend requirement
   const validatePassword = (password: string): string => {
     if (!password) return 'Password is required';
+    if (password.length < 6) return 'Password must be at least 6 characters long';
     
     let strength = 0;
     let feedback = '';
     
     // Check for minimum length
-    if (password.length >= 8) strength += 25;
-    else feedback = 'Password must be at least 8 characters long';
+    if (password.length >= 6) strength += 25;
+    else feedback = 'Password must be at least 6 characters long';
     
     // Check for lowercase letter
     if (/[a-z]/.test(password)) strength += 25;
-    else feedback = feedback || 'Password must contain at least one lowercase letter';
+    else feedback = feedback || 'Password should contain at least one lowercase letter';
     
     // Check for uppercase letter
     if (/[A-Z]/.test(password)) strength += 25;
-    else feedback = feedback || 'Password must contain at least one uppercase letter';
+    else feedback = feedback || 'Password should contain at least one uppercase letter';
     
     // Check for special character
     if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength += 25;
-    else feedback = feedback || 'Password must contain at least one special character';
+    else feedback = feedback || 'Password should contain at least one special character';
     
     setPasswordStrength(strength);
     return feedback;
@@ -136,17 +164,21 @@ export function SignupForm({ className, ...props }: SignupFormProps) {
     const usernameError = validateUsername(formData.username);
     const passwordError = validatePassword(formData.password);
     const confirmPasswordError = validateConfirmPassword(formData.confirmPassword, formData.password);
+    const firstNameError = validateFirstName(formData.firstName);
+    const lastNameError = validateLastName(formData.lastName);
     const termsError = !formData.agreeToTerms ? 'You must agree to the terms and conditions' : '';
     
     setErrors({
       username: usernameError,
       password: passwordError,
       confirmPassword: confirmPasswordError,
+      firstName: firstNameError,
+      lastName: lastNameError,
       terms: termsError,
       auth: ''
     });
     
-    return !(usernameError || passwordError || confirmPasswordError || termsError);
+    return !(usernameError || passwordError || confirmPasswordError || firstNameError || lastNameError || termsError);
   };
 
   // Run validation on input change if the field has been touched
@@ -171,6 +203,20 @@ export function SignupForm({ className, ...props }: SignupFormProps) {
         confirmPassword: validateConfirmPassword(formData.confirmPassword, formData.password)
       }));
     }
+
+    if (touched.firstName) {
+      setErrors(prev => ({
+        ...prev,
+        firstName: validateFirstName(formData.firstName)
+      }));
+    }
+
+    if (touched.lastName) {
+      setErrors(prev => ({
+        ...prev,
+        lastName: validateLastName(formData.lastName)
+      }));
+    }
   }, [formData, touched]);
 
   // Handle form submission
@@ -183,29 +229,13 @@ export function SignupForm({ className, ...props }: SignupFormProps) {
     
     if (isValid) {
       try {
-        // Simulate API call to check username uniqueness and create account
-        const isUnique = await checkUsernameUniqueness(formData.username);
-        
-        if (!isUnique) {
-          setErrors(prev => ({
-            ...prev,
-            auth: 'Username already exists. Please choose another one.'
-          }));
-          
-          Swal.fire({
-            title: 'Username Not Available',
-            text: 'This username is already taken. Please choose another one.',
-            icon: 'error',
-            confirmButtonText: 'OK'
+        // Make API call to register user using Axios
+        await axios.post('http://localhost:3000/auth/register', {
+            username: formData.username,
+            password: formData.password,
+            firstName: formData.firstName,
+            lastName: formData.lastName
           });
-          
-          setIsSubmitting(false);
-          return;
-        }
-        
-        // Simulate successful account creation
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
         // Show success message
         Swal.fire({
           title: 'Success!',
@@ -215,19 +245,24 @@ export function SignupForm({ className, ...props }: SignupFormProps) {
           timerProgressBar: true,
           showConfirmButton: false
         }).then(() => {
-      
           navigate('/login');
         });
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
+        let errorMessage = 'An error occurred while creating your account';
+        
+        if (axios.isAxiosError(error) && error.response) {
+          // Extract error message from the response
+          errorMessage = error.response.data.message || errorMessage;
+        }
+        
         setErrors(prev => ({
           ...prev,
-          auth: 'An error occurred while creating your account. Please try again.'
+          auth: errorMessage
         }));
         
         Swal.fire({
           title: 'Error!',
-          text: 'Failed to create account. Please try again.',
+          text: errorMessage,
           icon: 'error',
           confirmButtonText: 'OK'
         });
@@ -244,16 +279,6 @@ export function SignupForm({ className, ...props }: SignupFormProps) {
         confirmButtonText: 'OK'
       });
     }
-  };
-
-  // Simulate checking username uniqueness with the backend
-  const checkUsernameUniqueness = async (username: string): Promise<boolean> => {
-    // This would be an API call in a real application
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // For demo purposes, let's pretend these usernames are taken
-    const takenUsernames = ['johndoe123', 'admin12345', 'testuser1'];
-    return !takenUsernames.includes(username);
   };
 
   // Get strength color for password indicator
@@ -294,6 +319,7 @@ export function SignupForm({ className, ...props }: SignupFormProps) {
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
+              {/* Username field */}
               <div className="grid gap-3">
                 <Label htmlFor="username">Username</Label>
                 <Input
@@ -311,6 +337,43 @@ export function SignupForm({ className, ...props }: SignupFormProps) {
                 )}
               </div>
               
+              {/* First Name field */}
+              <div className="grid gap-3">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  type="text"
+                  placeholder="John"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  onBlur={() => setTouched(prev => ({ ...prev, firstName: true }))}
+                  className={errors.firstName ? "border-red-500" : ""}
+                  required
+                />
+                {errors.firstName && (
+                  <p className="text-sm text-red-500">{errors.firstName}</p>
+                )}
+              </div>
+              
+              {/* Last Name field */}
+              <div className="grid gap-3">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  placeholder="Doe"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  onBlur={() => setTouched(prev => ({ ...prev, lastName: true }))}
+                  className={errors.lastName ? "border-red-500" : ""}
+                  required
+                />
+                {errors.lastName && (
+                  <p className="text-sm text-red-500">{errors.lastName}</p>
+                )}
+              </div>
+              
+              {/* Password field */}
               <div className="grid gap-3">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
@@ -325,14 +388,14 @@ export function SignupForm({ className, ...props }: SignupFormProps) {
                   />
                   <button 
                     type="button"
-                    className="absolute inset-y-0 right-0 pr-3 bg-amber-50 flex items-center text-gray-400 hover:text-gray-600"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                     onClick={togglePasswordVisibility}
                     tabIndex={-1}
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
                     ) : (
-                      <Eye className="h-5 w-5 " />
+                      <Eye className="h-5 w-5" />
                     )}
                   </button>
                 </div>
@@ -349,6 +412,7 @@ export function SignupForm({ className, ...props }: SignupFormProps) {
                 )}
               </div>
               
+              {/* Confirm Password field */}
               <div className="grid gap-3">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <div className="relative">
@@ -379,6 +443,7 @@ export function SignupForm({ className, ...props }: SignupFormProps) {
                 )}
               </div>
               
+              {/* Terms Agreement */}
               <div className="flex items-center space-x-2">
                 <Checkbox 
                   id="agreeToTerms" 
@@ -403,12 +468,14 @@ export function SignupForm({ className, ...props }: SignupFormProps) {
                 <p className="text-sm text-red-500 -mt-4">{errors.terms}</p>
               )}
               
+              {/* Error message */}
               {errors.auth && (
                 <Alert variant="destructive">
                   <AlertDescription>{errors.auth}</AlertDescription>
                 </Alert>
               )}
               
+              {/* Submit button */}
               <div className="flex flex-col gap-3">
                 <Button 
                   type="submit" 
