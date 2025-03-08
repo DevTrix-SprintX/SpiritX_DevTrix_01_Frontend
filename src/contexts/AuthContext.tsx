@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode, useState, useEffect, JSX } from "react";
+import { createContext, useContext, ReactNode, useState, useEffect, JSX, use } from "react";
 
 interface User {
   token: string;
@@ -33,16 +33,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         // Check if user is already logged in
         const storedUser = localStorage.getItem("user");
-        const storedToken = localStorage.getItem("token");
         
-        if (storedUser && storedToken) {
+        if (storedUser) {
           setUser(JSON.parse(storedUser));
           setIsAuthenticated(true);
         }
       } catch (error) {
         console.error("Authentication error:", error);
         localStorage.removeItem("user");
-        localStorage.removeItem("token");
       } finally {
         setLoading(false);
       }
@@ -51,11 +49,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuthStatus();
   }, []);
 
+  useEffect(() => {
+    console.log('restored User data:', user);
+  }
+  , [user]);
+
   const login = (userData: User) => {
     localStorage.setItem("user", JSON.stringify(userData));
     
     setIsAuthenticated(true);
     setUser(userData);
+    console.log('Logged in user:', userData);
   };
 
   const logout = () => {
