@@ -9,11 +9,12 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import axios from "axios"
 import apiService from "@/services/AxiosInstence"
 import { jwtDecode } from "jwt-decode"
 import { useAuth } from "@/contexts/AuthContext"
+import { useNavigate } from "react-router-dom"
 
 export function LoginForm({
   className,
@@ -23,6 +24,18 @@ export function LoginForm({
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+
+  const navigate = useNavigate();
+  const auth = useAuth();
+
+  useEffect(() => {
+    // Check if user is already logged in
+    
+    console.log('User data:', auth.user);
+    if (auth.user) {
+      navigate('/dashboard')
+    }
+  }, [auth.user])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,7 +56,7 @@ export function LoginForm({
       const decodeData = jwtDecode(response.token);
       console.log('Decoded token data:', decodeData);
       
-      localStorage.setItem("user", JSON.stringify(userData));
+      auth.login(userData);
 
 
       

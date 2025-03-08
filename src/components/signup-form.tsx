@@ -108,6 +108,7 @@ export function SignupForm({ className, ...props }: SignupFormProps) {
   const validateUsername = (username: string): string => {
     if (!username) return 'Username is required';
     if (username.length < 8) return 'Username must be at least 8 characters long';
+    if (!/^[a-zA-Z0-9]+$/.test(username)) return 'Username must be alphanumeric';
     return '';
   };
 

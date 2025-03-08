@@ -35,8 +35,8 @@ class ApiService {
         }
         
         // Attach token to headers if exists
-        console.log('attaching token', user.token);
-        if (user.token) {
+        console.log('attaching token', user?.token);
+        if (user?.token) {
           config.headers = config.headers || {};
           config.headers['Authorization'] = `Bearer ${user.token}`;
         }
