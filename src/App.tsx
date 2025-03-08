@@ -1,14 +1,15 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { LoginForm } from './components/login-form'
+
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
-function App() {
-  const [count, setCount] = useState(0)
+import { SignupForm } from './components/signup-form'
 
+
+function App() {
   return (
+
     <BrowserRouter>
       <Routes>
       <Route path="/login" element={<LoginForm />} />
@@ -19,6 +20,7 @@ function App() {
       } />
       </Routes>
     </BrowserRouter>
+
   )
 }
 
