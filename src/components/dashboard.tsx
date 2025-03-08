@@ -4,17 +4,14 @@ import apiService from '@/services/AxiosInstence';
 
 // Define interfaces for type safety
 interface UserData {
-  id: string;
   username: string;
   firstName: string;
   lastName: string;
   [key: string]: unknown; 
 }
 
-interface ApiResponse {
-  status: number;
-  user: UserData;
-}
+interface ApiResponse {status: number, user: { username: string ,firstName:  string ,lastName:  string }}
+
 
 const Dashboard: React.FC = () => {
   const [user, setUser] = useState<UserData | null>(null);
@@ -26,22 +23,16 @@ const Dashboard: React.FC = () => {
       try {
         setLoading(true);
         
-        // Get token from localStorage
-        const token = localStorage.getItem('token');
-        
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
-        
-        // Fetch user profile using the token
-        const response = await apiService.get<UserData>('/user');
+    
+        const response = await apiService.get('/auth/profile') as ApiResponse;
         console.log('User profile response:', response);
         
-        if (!response.ok) {
+        if (response.status !== 200) {
           throw new Error('Failed to fetch user profile');
         }
+
         
-        const data = await response.json() as ApiResponse;
+        const data = response as ApiResponse;
         console.log('User data received:', data); // Add this for debugging
         
         if (data.user) {

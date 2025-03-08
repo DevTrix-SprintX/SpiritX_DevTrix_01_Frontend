@@ -1,4 +1,4 @@
-import { useAuth } from '@/contexts/AuthContext';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import { Route, useNavigate } from 'react-router-dom';
 
@@ -52,13 +52,9 @@ class ApiService {
         if (error.response) {
           const { status } = error.response;
           
-          const navigate = useNavigate();
-          const auth = useAuth();
           // Handle 401 Unauthorized
           if (status === 401) {
-            auth.logout();
-            navigate('/login');
-            
+              window.location.href = '/login';
           }
           
           // Handle 403 Forbidden
@@ -92,6 +88,7 @@ class ApiService {
   // GET method
   public async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.axiosInstance.get<T>(url, config);
+    console.log('GET response:', response);
     return response.data;
   }
   
