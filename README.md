@@ -4,6 +4,9 @@
 
 SecureConnect is a secure authentication system using JWT tokens for user authentication. It ensures robust security measures, including strong password policies, real-time validation, and seamless user experience.
 
+### Backend repo link
+https://github.com/DevTrix-SprintX/SpiritX_DevTrix_01_Backend
+
 ## Features
 
 - **User Authentication with JWT**
