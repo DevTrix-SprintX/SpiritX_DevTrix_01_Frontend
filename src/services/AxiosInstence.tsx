@@ -61,7 +61,7 @@ class ApiService {
           const { status } = error.response;
           
           // Handle 401 Unauthorized
-          if (status === 401) {
+          if (status === 401 && window.location.pathname !== '/login') {
               window.location.href = '/login';
           }
           

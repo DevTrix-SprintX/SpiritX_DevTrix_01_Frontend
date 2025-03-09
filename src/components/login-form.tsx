@@ -48,8 +48,9 @@ export function LoginForm({
       console.log('Login response:', response);
       
       if(!response.token) {
-        throw new Error('No token found in response'); 
+        console.error('No token found in response'); 
       }
+      else{
       const userData = { username, token: response.token, firstName: response.user.firstName , lastName: response.user.lastName };
       console.log('Logged User data:', userData);
       
@@ -57,7 +58,7 @@ export function LoginForm({
       console.log('Decoded token data:', decodeData);
       
       auth.login(userData);
-
+      
 
       
       const Swal = (await import('sweetalert2')).default
@@ -80,6 +81,7 @@ export function LoginForm({
       // Reset form
       setUsername("")
       setPassword("")
+    }
     } catch (error) {
       console.error('Login error:', error)
       
@@ -93,13 +95,14 @@ export function LoginForm({
       
       // Import SweetAlert dynamically for error
       const Swal = (await import('sweetalert2')).default
-      
-      Swal.fire({
+      await Swal.fire({
         title: 'Error!',
         text: errorMessage,
         icon: 'error',
+        timer: 5000,
         confirmButtonText: 'Try Again',
-        confirmButtonColor: '#ef4444'
+        confirmButtonColor: '#ef4444',
+        timerProgressBar: true,
       })
     } finally {
       setIsLoading(false)
